@@ -1,0 +1,18 @@
+﻿<Application x:Class="LightsOut.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:my="clr-namespace:LightsOut"
+             StartupUri="MainWindow.xaml">
+	<Application.Resources>
+		<ControlTemplate x:Key="BlackTile" TargetType="ContentControl">
+			<Border Background="#040" BorderBrush="White" BorderThickness="0.2">
+				<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.FontSize="24" TextBlock.Foreground="White" />
+			</Border>
+		</ControlTemplate>
+		<ControlTemplate x:Key="WhiteTile" TargetType="ContentControl">
+			<Border Background="#ffffcc" BorderBrush="Black" BorderThickness="0.5">
+				<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.FontSize="24" />
+			</Border>
+		</ControlTemplate>
+	</Application.Resources>
+</Application>
