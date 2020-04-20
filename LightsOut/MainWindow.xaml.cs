@@ -16,9 +16,9 @@ namespace LightsOut
         public static readonly IEnumerable<int> GridSizes = Enumerable.Range(1, 16);
 
         internal TileGrid grid;
-        ContentControl[,] buttons;
-        Solver solver;
-        Random random = new Random();
+        private ContentControl[,] buttons;
+        private Solver solver;
+        private readonly Random random = new Random();
 
         public MainWindow()
         {
@@ -50,7 +50,7 @@ namespace LightsOut
 
         static ControlTemplate GetTemplate(bool state)
         {
-            return (ControlTemplate)(state ? App.Current.FindResource("BlackTile") : App.Current.FindResource("WhiteTile"));
+            return (ControlTemplate)(state ? Application.Current.FindResource("BlackTile") : Application.Current.FindResource("WhiteTile"));
         }
 
         private void InitializeTileGrid()
@@ -63,7 +63,7 @@ namespace LightsOut
                 for (int x = 0; x < GridSize; x++)
                 {
                     var button = new ContentControl();
-                    button.Template = (ControlTemplate)App.Current.FindResource("WhiteTile");
+                    button.Template = (ControlTemplate)System.Windows.Application.Current.FindResource("WhiteTile");
                     int xTemp = x, yTemp = y;
                     button.MouseDown += (object sender, MouseButtonEventArgs e) =>
                     {
@@ -91,7 +91,7 @@ namespace LightsOut
             if (x >= 0 && y >= 0 && x < GridSize && y < GridSize)
             {
                 buttons[x, y].Template = GetTemplate(grid[x, y]);
-                buttons[x, y].Content = grid.PressState[x, y] == 1 ? "1" : string.Empty;
+                buttons[x, y].Content = grid.ImbueState[x, y] == 1 ? "1" : string.Empty;
             }
         }
 
@@ -105,42 +105,8 @@ namespace LightsOut
         private void InvertColors()
         {
             for (int y = 0; y < GridSize; y++)
-            {
                 for (int x = 0; x < GridSize; x++)
-                {
                     FlipSingle(x, y);
-                }
-            }
-        }
-
-        private void DoChase1()
-        {
-            var list = new List<Point>();
-            for (int y = 0; y < GridSize; y++)
-                for (int x = 0; x < GridSize; x++)
-                    if (grid[x, y])
-                        list.Add(new Point(x, y));
-            foreach (var point in list)
-                Flip((int)point.X, (int)point.Y);
-        }
-
-        private void DoChase2()
-        {
-            // Find first row with black tiles.
-            bool foundBlackTileRow = false;
-            for (int y = 0; y < GridSize - 1; y++)
-            {
-                for (int x = 0; x < GridSize; x++)
-                {
-                    if (grid[x, y])
-                    {
-                        foundBlackTileRow = true;
-                        Flip(x, y + 1);
-                    }
-                }
-                if (foundBlackTileRow)
-                    break;
-            }
         }
 
         private void ResetGrid()
@@ -149,32 +115,22 @@ namespace LightsOut
             UpdateGridUI();
         }
 
-        private void sizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             InitializeTileGrid();
         }
 
-        private void resetButton_Click(object sender, RoutedEventArgs e)
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
             ResetGrid();
         }
 
-        private void chase1Button_Click(object sender, RoutedEventArgs e)
-        {
-            DoChase1();
-        }
-
-        private void chase2Button_Click(object sender, RoutedEventArgs e)
-        {
-            DoChase2();
-        }
-
-        private void invertColorsButton_Click(object sender, RoutedEventArgs e)
+        private void InvertColorsButton_Click(object sender, RoutedEventArgs e)
         {
             InvertColors();
         }
 
-        private async void solveButton_Click(object sender, RoutedEventArgs e)
+        private async void SolveButton_Click(object sender, RoutedEventArgs e)
         {
             solveButton.IsEnabled = false;
             var gridSize = GridSize;
@@ -184,20 +140,20 @@ namespace LightsOut
                     solver = new Solver(gridSize);
                 return solver.Solve(grid);
             });
-            statusTextBlock.Text = $"Code: {solver.ToChessString(solution.Code)}, Number of steps: {solution.Score}";
+            statusTextBlock.Text = $"Codes: {string.Join(", ", from c in solution.Codes select solver.ToChessString(c))}, Number of steps: {solution.Score}";
             solveButton.IsEnabled = true;
             UpdateGridUI();
         }
 
-        private void unsolveButton_Click(object sender, RoutedEventArgs e)
+        private void UnsolveButton_Click(object sender, RoutedEventArgs e)
         {
             for (int y = 0; y < GridSize; y++)
                 for (int x = 0; x < GridSize; x++)
-                    if (grid.PressState[x, y] == 1)
+                    if (grid.ImbueState[x, y] == 1)
                         Flip(x, y);
         }
 
-        private void randomButton_Click(object sender, RoutedEventArgs e)
+        private void RandomButton_Click(object sender, RoutedEventArgs e)
         {
             ResetGrid();
             for (int y = 0; y < GridSize; y++)

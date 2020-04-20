@@ -1,4 +1,4 @@
-﻿<Application x:Class="LightsOut.App"
+﻿<Application x:Class="LightsOut.Application"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:my="clr-namespace:LightsOut"

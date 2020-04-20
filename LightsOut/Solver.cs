@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace LightsOut
 {
     public class Solver
     {
-        private int[] flipActionBasis;
-        private int[] flipActions;
-        private int[] bits;
+        private readonly int[] flipActions;
 
         public Solver(int size = 5)
         {
@@ -15,85 +16,92 @@ namespace LightsOut
                 size = 5;
             Size = size;
 
-            bits = new int[size * size];
-            for (int i = 0; i < bits.Length; i++)
-                bits[i] = 1 << i;
-
-            flipActionBasis = (from i in Enumerable.Range(0, size * size)
-                               select GetFlipActionBasis(i)).ToArray();
-
-            flipActions = new int[1 << (size * size)];
-            for (int i = 0; i < flipActions.Length; i++)
-            {
-                flipActions[i] = GetFlipAction(i);
-            }
+            flipActions = new int[1 << (Size * Size)];
+            InitiailizeFlipActions();
         }
 
         public int Size { get; }
 
-        public (int Code, int Score) Solve(TileGrid grid)
+        public (int[] Codes, int Score) Solve(TileGrid grid)
         {
             int gridCode = 0;
             for (int i = 0; i < Size * Size; i++)
-            {
                 if (grid.State[i % Size, i / Size])
-                    gridCode ^= bits[i];
-            }
+                    gridCode ^= 1 << i;
 
             var solution = Solve(gridCode);
             for (int i = 0; i < Size * Size; i++)
-            {
-                if ((solution.Code & bits[i]) != 0)
+                if ((solution.Codes[0] & 1 << i) != 0)
                     grid.Imbue(i % Size, i / Size);
-            }
             return solution;
         }
 
-        public (int Code, int Score) Solve(int gridCode)
+        public (int[] Codes, int Score) Solve(int gridCode)
         {
             var minScore = int.MaxValue;
-            var solutionCode = 0;
+            var solutionCodes = new List<int>();
             for (int i = 0; i < flipActions.Length; i++)
             {
                 var numBlack = CountSetBits(gridCode ^ flipActions[i]);
                 var score = CountSetBits(i) + Math.Min(numBlack, Size * Size - numBlack);
-                if (minScore > score)
+                if (minScore >= score)
                 {
+                    if (minScore > score)
+                        solutionCodes.Clear();
+                    solutionCodes.Add(i);
                     minScore = score;
-                    solutionCode = i;
                 }
             }
-            return (solutionCode, minScore);
+            return (solutionCodes.ToArray(), minScore);
+        }
+
+        private void InitiailizeFlipActions()
+        {
+            var fileName = $"flip-actions-{Size}.bin";
+            if (File.Exists(fileName))
+            {
+                using var file = File.OpenRead(fileName);
+                file.Read(MemoryMarshal.AsBytes<int>(flipActions));
+            }
+            else
+            {
+                var flipActionBasis = (from i in Enumerable.Range(0, Size * Size)
+                                       select GetFlipActionBasis(i)).ToArray();
+                for (int i = 0; i < flipActions.Length; i++)
+                    flipActions[i] = GetFlipAction(i, flipActionBasis);
+                using var file = File.OpenWrite(fileName);
+                file.Write(MemoryMarshal.AsBytes<int>(flipActions));
+            }
         }
 
         private int GetFlipActionBasis(int index)
         {
-            var result = bits[index];
+            var result = 1 << index;
             int y = index / Size, x = index % Size;
             if (x > 0)
-                result ^= bits[y * Size + (x - 1)];
+                result ^= 1 << (y * Size + (x - 1));
             if (x < Size - 1)
-                result ^= bits[y * Size + (x + 1)];
+                result ^= 1 << (y * Size + (x + 1));
             if (y > 0)
-                result ^= bits[(y - 1) * Size + x];
+                result ^= 1 << ((y - 1) * Size + x);
             if (y < Size - 1)
-                result ^= bits[(y + 1) * Size + x];
+                result ^= 1 << ((y + 1) * Size + x);
             return result;
         }
 
-        private int GetFlipAction(int code)
+        private int GetFlipAction(int code, int[] flipActionBasis)
         {
             int result = 0;
-            for (int i = 0; i < bits.Length; i++)
-                if ((code & bits[i]) != 0)
+            for (int i = 0; i < Size * Size; i++)
+                if ((code & 1 << i) != 0)
                     result ^= flipActionBasis[i];
             return result;
         }
 
         public string ToChessString(int code)
         {
-            return string.Join(" ", from i in Enumerable.Range(0, bits.Length)
-                                    where (code & bits[i]) != 0
+            return string.Join(" ", from i in Enumerable.Range(0, Size * Size)
+                                    where (code & 1 << i) != 0
                                     select IndexToChessString(i));
         }
 
@@ -105,8 +113,6 @@ namespace LightsOut
 
         static int CountSetBits(int i)
         {
-            // Java: use >>> instead of >>
-            // C or C++: use uint32_t
             i -= ((i >> 1) & 0x55555555);
             i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
             return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
