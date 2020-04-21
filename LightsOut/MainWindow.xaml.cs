@@ -62,8 +62,10 @@ namespace LightsOut
             {
                 for (int x = 0; x < GridSize; x++)
                 {
-                    var button = new ContentControl();
-                    button.Template = (ControlTemplate)System.Windows.Application.Current.FindResource("WhiteTile");
+                    var button = new ContentControl
+                    {
+                        Template = (ControlTemplate)System.Windows.Application.Current.FindResource("WhiteTile")
+                    };
                     int xTemp = x, yTemp = y;
                     button.MouseDown += (object sender, MouseButtonEventArgs e) =>
                     {
@@ -115,6 +117,12 @@ namespace LightsOut
             UpdateGridUI();
         }
 
+        private void Log(string text)
+        {
+            statusTextBox.AppendText(text + Environment.NewLine);
+            statusTextBox.ScrollToEnd();
+        }
+
         private void SizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             InitializeTileGrid();
@@ -134,13 +142,13 @@ namespace LightsOut
         {
             solveButton.IsEnabled = false;
             var gridSize = GridSize;
-            var solution = await Task.Run(() =>
+            var (codes, score) = await Task.Run(() =>
             {
                 if (solver == null || solver.Size != gridSize)
                     solver = new Solver(gridSize);
                 return solver.Solve(grid);
             });
-            statusTextBlock.Text = $"Codes: {string.Join(", ", from c in solution.Codes select solver.ToChessString(c))}, Number of steps: {solution.Score}";
+            Log($"Number of steps: {score}, Solutions: {string.Join(", ", from c in codes select solver.ToChessString(c))}");
             solveButton.IsEnabled = true;
             UpdateGridUI();
         }

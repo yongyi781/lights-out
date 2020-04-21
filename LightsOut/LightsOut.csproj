@@ -10,10 +10,16 @@
     <Company>Fiery001</Company>
     <Authors>Fiery001</Authors>
     <Description>Lights out game and solver</Description>
-    <PackageIcon>LightsOut.png</PackageIcon>
+    <PackageIcon></PackageIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Images\LightsOut.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="Images\LightsOut.png" />
-    <Resource Include="Images\LightsOut32.png" />
   </ItemGroup>
 </Project>
