@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Images\LightsOut.ico</ApplicationIcon>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
@@ -13,13 +13,13 @@
     <PackageIcon></PackageIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Images\LightsOut.png" />
+    <None Remove="Images\LightsOut32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\LightsOut.png" />
+    <Resource Include="Images\LightsOut32.png" />
   </ItemGroup>
 </Project>

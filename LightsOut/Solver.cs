@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
+using System.Threading.Tasks;
 
 namespace LightsOut
 {
@@ -21,8 +23,9 @@ namespace LightsOut
         }
 
         public int Size { get; }
+        public int[] FlipActions => flipActions;
 
-        public (int[] Codes, int Score) Solve(TileGrid grid)
+        public (List<int> codes, int score) Solve(TileGrid grid)
         {
             int gridCode = 0;
             for (int i = 0; i < Size * Size; i++)
@@ -31,19 +34,19 @@ namespace LightsOut
 
             var solution = Solve(gridCode);
             for (int i = 0; i < Size * Size; i++)
-                if ((solution.Codes[0] & 1 << i) != 0)
+                if ((solution.codes[0] & 1 << i) != 0)
                     grid.Imbue(i % Size, i / Size);
             return solution;
         }
 
-        public (int[] Codes, int Score) Solve(int gridCode)
+        public (List<int> codes, int score) Solve(int gridCode)
         {
             var minScore = int.MaxValue;
             var solutionCodes = new List<int>();
-            for (int i = 0; i < flipActions.Length; i++)
+            for (int i = 0; i < 1 << (Size * Size); i++)
             {
-                var numBlack = CountSetBits(gridCode ^ flipActions[i]);
-                var score = CountSetBits(i) + Math.Min(numBlack, Size * Size - numBlack);
+                var numBlack = (int)Popcnt.PopCount((uint)(gridCode ^ flipActions[i]));
+                var score = (int)Popcnt.PopCount((uint)i) + Math.Min(numBlack, Size * Size - numBlack);
                 if (minScore >= score)
                 {
                     if (minScore > score)
@@ -52,7 +55,43 @@ namespace LightsOut
                     minScore = score;
                 }
             }
-            return (solutionCodes.ToArray(), minScore);
+            return (solutionCodes, minScore);
+        }
+
+        public string ToChessString(int code)
+        {
+            return "[" + string.Join(" ", from i in Enumerable.Range(0, Size * Size)
+                                          where (code & 1 << i) != 0
+                                          select IndexToChessString(i)) + "]";
+        }
+
+        public byte[] GetAllScores()
+        {
+            var n = 1 << (Size * Size);
+            var scores = new byte[n];
+            var agenda = new Queue<(int code, byte score)>();
+            agenda.Enqueue((0, 0));
+            agenda.Enqueue((n - 1, 0));
+            while (agenda.Count > 0)
+            {
+                var (code, score) = agenda.Dequeue();
+                for (int i = 0; i < Size * Size; i++)
+                {
+                    var code2 = code ^ (1 << i);
+                    var code3 = code ^ flipActions[1 << i];
+                    if (code2 != 0 && code2 != n - 1 && scores[code2] == 0)
+                    {
+                        scores[code2] = (byte)(score + 1);
+                        agenda.Enqueue((code2, (byte)(score + 1)));
+                    }
+                    if (code3 != 0 && code3 != n - 1 && scores[code3] == 0)
+                    {
+                        scores[code3] = (byte)(score + 1);
+                        agenda.Enqueue((code3, (byte)(score + 1)));
+                    }
+                }
+            }
+            return scores;
         }
 
         private void InitiailizeFlipActions()
@@ -98,24 +137,10 @@ namespace LightsOut
             return result;
         }
 
-        public string ToChessString(int code)
-        {
-            return string.Join(" ", from i in Enumerable.Range(0, Size * Size)
-                                    where (code & 1 << i) != 0
-                                    select IndexToChessString(i));
-        }
-
         private string IndexToChessString(int index)
         {
             int y = index / Size, x = index % Size;
-            return $"{(char)(x + 'a')}{(char)((Size - 1 - y) + '1')}";
-        }
-
-        static int CountSetBits(int i)
-        {
-            i -= ((i >> 1) & 0x55555555);
-            i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-            return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+            return $"{(char)(x + 'a')}{(char)(y + '1')}";
         }
     }
 }

@@ -1,24 +1,29 @@
-﻿<Window x:Class="LightsOut.MainWindow"
+﻿<Window x:Name="myWindow" x:Class="LightsOut.MainWindow"
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:my="clr-namespace:LightsOut"
-		Title="Lights Out" Height="700" Width="500" MinWidth="442" MinHeight="479" WindowStartupLocation="CenterScreen" Icon="/Images/LightsOut32.png">
+		Title="Lights Out"  Width="900" Height="670" WindowStartupLocation="CenterScreen" Icon="/Images/LightsOut32.png">
     <Grid TextOptions.TextFormattingMode="Display">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
             <Label Content="Size:" VerticalContentAlignment="Center" />
             <ComboBox Name="sizeComboBox" Height="23" ItemsSource="{x:Static Member=my:MainWindow.GridSizes}" ItemStringFormat="{}{0} x {0}" SelectionChanged="SizeComboBox_SelectionChanged" />
+            <Label Content="Code:" VerticalContentAlignment="Center" />
+            <TextBox Name="codeTextBox" Width="60" Height="23" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Text="{Binding ElementName=myWindow, Path=GridCode, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="R_andom" Click="RandomButton_Click" Width="75" Margin="2,5" Height="23" />
             <Button Content="_Solve" Name="solveButton" Width="75" Click="SolveButton_Click" Margin="2,5" Height="23" />
             <Button Content="_Unsolve" Width="75" Click="UnsolveButton_Click" Margin="2,5" Height="23" />
             <Button Content="_Reset" Click="ResetButton_Click" Width="75" Margin="2,5" Height="23" />
-            <Button Content="_Invert Colors" Width="75" Click="InvertColorsButton_Click" Margin="2,5" Height="23" />
+            <Button Content="_Invert" Width="75" Click="InvertColorsButton_Click" Margin="2,5" Height="23" />
         </StackPanel>
-        <UniformGrid Name="uniformGrid" Grid.Row="1" Rows="{Binding ElementName=sizeComboBox, Path=SelectedItem}" Columns="{Binding ElementName=sizeComboBox, Path=SelectedItem}" />
-        <TextBox x:Name="statusTextBox" Grid.Row="2" Height="150" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="13.333" IsReadOnly="True" IsReadOnlyCaretVisible="True" TextWrapping="WrapWithOverflow"/>
+        <UniformGrid Name="uniformGrid" Grid.Row="1" Grid.Column="0" Rows="{Binding ElementName=sizeComboBox, Path=SelectedItem}" Columns="{Binding ElementName=sizeComboBox, Path=SelectedItem}" />
+        <TextBox Name="statusTextBox" Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="13.333" IsReadOnly="True" IsReadOnlyCaretVisible="True" TextWrapping="WrapWithOverflow" />
     </Grid>
 </Window>

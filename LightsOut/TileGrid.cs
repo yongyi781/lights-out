@@ -13,7 +13,7 @@
         {
             Size = size;
             State = new bool[size, size];
-            ImbueState = new int[size, size];
+            ImbueState = new bool[size, size];
         }
 
         public bool this[int x, int y]
@@ -25,9 +25,21 @@
         public int Size { get; }
         public bool[,] State { get; private set; }
         /// <summary>
-        /// Gets a table of flip parities, where 1 is odd and 0 is even.
+        /// Gets a table of flip parities, where 1 is imbued and 0 is not.
         /// </summary>
-        public int[,] ImbueState { get; private set; }
+        public bool[,] ImbueState { get; private set; }
+
+        public void Reset()
+        {
+            for (int y = 0; y < Size; y++)
+            {
+                for (int x = 0; x < Size; x++)
+                {
+                    State[x, y] = false;
+                    ImbueState[x, y] = false;
+                }
+            }
+        }
 
         /// <summary>
         /// Flips a tile and the four tiles surrounding it.
@@ -43,7 +55,7 @@
             Force(x, y + 1);
 
             if (flipParity)
-                ImbueState[x, y] = 1 - ImbueState[x, y];
+                ImbueState[x, y] = !ImbueState[x, y];
         }
 
         /// <summary>
@@ -58,30 +70,22 @@
         }
 
         /// <summary>
-        /// Counts the number of tiles that are of a specified state.
+        /// Returns the integer representation of this grid.
         /// </summary>
-        /// <param name="on">Either true or false.</param>
-        /// <returns>The number of tiles with state equal to <paramref name="b"/>.</returns>
-        public int CountTiles(bool b)
+        /// <returns>The integer representation of this grid.</returns>
+        public int ToInt32()
         {
-            int count = 0;
-            for (int y = 0; y < Size; y++)
-                for (int x = 0; x < Size; x++)
-                    if (State[x, y] == b)
-                        count++;
-            return count;
+            int gridCode = 0;
+            for (int i = 0; i < Size * Size; i++)
+                if (State[i % Size, i / Size])
+                    gridCode ^= 1 << i;
+            return gridCode;
         }
 
-        public void Reset()
+        public void LoadInt32(int code)
         {
-            for (int y = 0; y < Size; y++)
-            {
-                for (int x = 0; x < Size; x++)
-                {
-                    State[x, y] = false;
-                    ImbueState[x, y] = 0;
-                }
-            }
+            for (int i = 0; i < Size * Size; i++)
+                State[i % Size, i / Size] = (code & (1 << i)) != 0;
         }
     }
 }
