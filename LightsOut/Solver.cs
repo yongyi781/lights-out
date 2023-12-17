@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
-using System.Threading.Tasks;
 
 namespace LightsOut
 {
@@ -19,7 +18,7 @@ namespace LightsOut
             Size = size;
 
             flipActions = new int[1 << (Size * Size)];
-            InitiailizeFlipActions();
+            InitializeFlipActions();
         }
 
         public int Size { get; }
@@ -65,6 +64,11 @@ namespace LightsOut
                                           select IndexToChessString(i)) + "]";
         }
 
+        /// <summary>
+        /// Returns a byte array of size 2^(Size*Size) of scores for each starting position. The score of a position is the minimum
+        /// number of flips (imbues and forces) needed to get it to all one color.
+        /// </summary>
+        /// <returns>A byte array of scores.</returns>
         public byte[] GetAllScores()
         {
             var n = 1 << (Size * Size);
@@ -94,7 +98,7 @@ namespace LightsOut
             return scores;
         }
 
-        private void InitiailizeFlipActions()
+        private void InitializeFlipActions()
         {
             var fileName = $"flip-actions-{Size}.bin";
             if (File.Exists(fileName))
